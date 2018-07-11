@@ -1,0 +1,8 @@
+SOLVIS_SERVER=solvisremote.example.net
+SOLVIS_USER=solvis
+SOLVIS_PASSWORD=solvis
+INFLUX_SERVER=http://localhost:8086
+INFLUX_DATABASE=solvis
+INFLUX_USERNAME=solvis
+INFLUX_PASSWORD=solvis
+
