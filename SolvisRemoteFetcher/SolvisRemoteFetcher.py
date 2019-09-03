@@ -100,6 +100,7 @@ class SolvisRemote:
             print(datetime.now(), "- Error", e)
             return False
         data = r.text[11:450] if r.status_code == 200 else None
+        # print(data)
         if data:
             self.parseValues(data)
             self._now = datetime.now()
@@ -115,7 +116,6 @@ class SolvisRemote:
                 val = func(val)
             self.values[key] = val
             offset += length
-        #print(zeit, self.data)
 
     def _parseTime(self, s):
         t = time(hour = int(s[0:2], 16), minute = int(s[2:4], 16), second = int(s[4:6], 16))
@@ -220,9 +220,8 @@ def main_fetch():
         #print(sr.getTime().isoformat(timespec='auto'), 'S11: {} C'.format(sr.getTemp(11)))
         now = int(datetime.utcnow().timestamp()) # use seconds instead of us*1e6)
         # print(now, sr.values)
-        # todo: HTTP post to InfluxDB. precision=s
-        # print("{} {} {}".format(measurement, sr.toInfluxLineProtocolValues(), now))
-        pprint.pprint(sr.values)
+        print("{} {} {}".format(measurement, sr.toInfluxLineProtocolValues(), now))
+#        pprint.pprint(sr.values)
         sleeptime = 60 - datetime.utcnow().second
         sleep(sleeptime)
 
