@@ -52,6 +52,7 @@ def test_sensors2():
     sr = srf.SolvisRemote()
     sr.parseValues(data)
     assert sr.values['S1'] == 67.9
+    assert sr.values['S8'] == 7.8
     assert sr.values['S10'] == 13.1
     assert sr.values['S12'] == 23.7
 
