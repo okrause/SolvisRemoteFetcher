@@ -25,6 +25,7 @@ def convertAtoInt(s):
     return int(v, 16)
 
 class SolvisRemote:
+    """ Class to read sensor data from a Solvis Remote and parse values """
     def __init__(self):
         self._fields = (("Header", 12, "Header", None),
                         ("Uhrzeit", 6, "Systemzeit", self._parseTime),
@@ -85,12 +86,14 @@ class SolvisRemote:
         self._auth = None
 
     def connect(self, server, user, passwd):
+        """ Connect to Solvis Remote via HTTP Digest auth and fest data"""
         self._server = server
         self._baseurl = 'http://{}'.format(server)
         self._auth = HTTPDigestAuth(user, passwd)
         self.update()
 
     def update(self):
+        """ Fetch latest sensor and parse """
         dummy = randint(10000000,99999999)
         # todo: handle connection problems
         # seen so far: no network, no dns, auth failed
@@ -109,6 +112,7 @@ class SolvisRemote:
             return False
 
     def parseValues(self, data):
+        """ Parse measurement string from Remote into dictionary """
         offset = 0
         for key, length, _, func in self._fields:
             val = data[offset:offset+length]
@@ -118,30 +122,37 @@ class SolvisRemote:
             offset += length
 
     def _parseTime(self, s):
+        """ Convert time string to datetime object """
         t = time(hour = int(s[0:2], 16), minute = int(s[2:4], 16), second = int(s[4:6], 16))
         d = datetime.today()
         return datetime.combine(d, t)
 
     def _parseTemp(self, s):
+        """ Convert temperature string to integer """
         value = convertAtoInt(s)
         value = value - 65536 if value > 32767 else value
         return value / 10
 
     def _parse4(self, s):
+        """ Convert 4 charater string to integer value """
         value = convertAtoInt(s)
         return value
 
     def _parse4div10(self, s):
+        """ Convert integer to float (.e.g Temperature 0192 to 19.2 °C) """
         return self._parse4(s)/10
 
     def _parseSwitch(self, s):
+        """ Convert Relais string to boolean """
         return False if convertAtoInt(s) == 0 else True
 
     def checkTime(self):
+        """ Calculate and print lag between system time and solvis remote time (it drifts a lot) """
         print("Time lag is: {} s (negative means Solvis is ahead of real time)".format(round((self._now - self.values['Uhrzeit']).total_seconds())))
         return
 
     def toInfluxLineProtocolValues(self):
+        """ Convert dictionary of measurement values into InfluxDB line protocol string """
         r = []
         for key, val in self.values.items():
             if type(val) == int:
