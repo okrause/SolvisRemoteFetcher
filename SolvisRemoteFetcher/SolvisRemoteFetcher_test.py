@@ -59,4 +59,6 @@ def test_sensors2():
 def test_AtoI():
     assert srf.convertAtoInt('A702') == 679
     assert srf.convertAtoInt('B402') == 692
+    assert srf.convertAtoInt('4E00') == 78
+
 
