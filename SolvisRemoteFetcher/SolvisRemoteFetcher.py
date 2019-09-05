@@ -12,6 +12,7 @@ import queue
 import threading
 import signal
 import pprint
+import logging
 
 q = queue.Queue()
 threads = []
@@ -100,7 +101,7 @@ class SolvisRemote:
         try:
             r = requests.get('{}/sc2_val.xml?dummy={}'.format(self._baseurl, dummy), auth=self._auth)
         except requests.exceptions.RequestException as e:
-            print(datetime.now(), "- Error", e)
+            logging.error("Solvis connection error", e)
             return False
         data = r.text[11:450] if r.status_code == 200 else None
         # print(data)
@@ -148,7 +149,7 @@ class SolvisRemote:
 
     def checkTime(self):
         """ Calculate and print lag between system time and solvis remote time (it drifts a lot) """
-        print("Time lag is: {} s (negative means Solvis is ahead of real time)".format(round((self._now - self.values['Uhrzeit']).total_seconds())))
+        logging.info("Time lag is: {} s (negative means Solvis is ahead of real time)".format(round((self._now - self.values['Uhrzeit']).total_seconds())))
         return
 
     def toInfluxLineProtocolValues(self):
@@ -180,7 +181,7 @@ class GracefulKiller:
         signal.signal(signal.SIGINT, self.exit_gracefully)
 
     def exit_gracefully(self, signum, frame):
-        print("Exiting ...")
+        logging.info("Exiting ...")
         self.kill_now = True
         q.join()
         for _ in range(num_worker_threads):
@@ -207,11 +208,11 @@ def sendInfluxRequest(req):
             r = requests.post(url, auth = auth, data = payload)
             rc = r.status_code
         except requests.exceptions.Timeout as r:
-            print(datetime.now(), "- Timeout")
+            logging.error("InfluxDB connection timeout")
             sleep(10)
             pass
         except requests.exceptions.ConnectionError as r:
-            print(datetime.now(), "- ConnectionError")
+            logging.error("InfluxDB connection error")
             sleep(10)
             pass
 
@@ -220,7 +221,7 @@ def main_fetch():
     user = getenv('SOLVIS_USER', 'solvis')
     pw = getenv('SOLVIS_PASSWORD', 'solvis')
     
-    print("Solvis\n Server  : {}\n User    : {}".format(server, user))
+    logging.info("Solvis\n Server  : {}\n User    : {}".format(server, user))
     sr = SolvisRemote()
     sr.connect(server, user, pw)
 
@@ -231,7 +232,7 @@ def main_fetch():
         #print(sr.getTime().isoformat(timespec='auto'), 'S11: {} C'.format(sr.getTemp(11)))
         now = int(datetime.utcnow().timestamp()) # use seconds instead of us*1e6)
         # print(now, sr.values)
-        print("{} {} {}".format(measurement, sr.toInfluxLineProtocolValues(), now))
+        logging.info("{} {} {}".format(measurement, sr.toInfluxLineProtocolValues(), now))
 #        pprint.pprint(sr.values)
         sleeptime = 60 - datetime.utcnow().second
         sleep(sleeptime)
@@ -243,13 +244,13 @@ def main_sendToInflux():
     influx_password = getenv('INFLUX_PASSWORD', 'solvis')
     url = influx_server + "/write?db=" + influx_database + "&precision=s"
 
-    print("Influx\n Server  : {}\n Database: {}\n User    : {}".format(influx_server, influx_database, influx_username))
+    logging.info("Influx\n Server  : {}\n Database: {}\n User    : {}".format(influx_server, influx_database, influx_username))
 
     server = getenv('SOLVIS_SERVER', 'solvisremote')
     user = getenv('SOLVIS_USER', 'solvis')
     pw = getenv('SOLVIS_PASSWORD', 'solvis')
 
-    print("Solvis\n Server  : {}\n User    : {}".format(server, user))
+    logging.info("Solvis\n Server  : {}\n User    : {}".format(server, user))
 
     sr = SolvisRemote()
     sr.connect(server, user, pw)
@@ -280,7 +281,8 @@ def main_stdin():
     for line in sys.stdin:
         ts, val = line.split()
         sr.parseValues(val)
-        print("{} {} {}".format(measurement, sr.toInfluxLineProtocolValues(), ts))
+        logging.info("{} {} {}".format(measurement, sr.toInfluxLineProtocolValues(), ts))
 
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
     main_fetch()
