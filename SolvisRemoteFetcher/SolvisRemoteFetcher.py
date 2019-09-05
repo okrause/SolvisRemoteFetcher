@@ -19,6 +19,7 @@ threads = []
 num_worker_threads = 1
 
 def convertAtoInt(s):
+    """ Convert little endian hex string to integer. B402 -> 02B4 -> 692 """
     v = ''
     while len(s):
         v = v + s[-2:]
@@ -200,6 +201,7 @@ def worker():
         q.task_done()
 
 def sendInfluxRequest(req):
+    """ Send measurements to InfluxDB """
     url, auth, payload = req
     rc = 0
     # retry until we successfully deliver our data: rc.status_code=204
@@ -217,6 +219,7 @@ def sendInfluxRequest(req):
             pass
 
 def main_fetch():
+    """ Do measurement and print to logging every minute """
     server = getenv('SOLVIS_SERVER', 'solvisremote')
     user = getenv('SOLVIS_USER', 'solvis')
     pw = getenv('SOLVIS_PASSWORD', 'solvis')
@@ -275,6 +278,7 @@ def main_sendToInflux():
             q.put((url, (influx_username, influx_password), payload))
 
 def main_stdin():
+    """ Read measurement string from stdin, parse and print to logging """
     measurement = 'SolvisRemote/'
 
     sr = SolvisRemote()
