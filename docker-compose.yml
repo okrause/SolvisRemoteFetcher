@@ -6,6 +6,7 @@ services:
     restart: unless-stopped
     env_file: .environment
 
+  # If you want to use a local InfluxDB container
   # influxdb:
   #   image: influxdb:alpine
   #   restart: unless-stopped
@@ -19,6 +20,7 @@ services:
   #     - INFLUXDB_HTTP_ENABLED=true
   #     - INFLUXDB_HTTP_AUTH_ENABLED=true
 
+# If you want to attach to an existing network which already hosts an InfluxDB
 # networks:
 #   default:
 #     external:
