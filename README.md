@@ -14,7 +14,8 @@ Adjust the variables in .environment file to fit your environment.
 
 Run the tool either directly via command line:
 ```
-python3 --env-file .environment SolvisRemoteFetcher/SolvisRemoteFetcher.py
+export $(cat .environment | xargs)
+python3 SolvisRemoteFetcher/SolvisRemoteFetcher.py
 ```
 
 or use
