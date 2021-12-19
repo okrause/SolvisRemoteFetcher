@@ -104,8 +104,8 @@ class SolvisRemote:
         except requests.exceptions.RequestException as e:
             logging.error("Solvis connection error", e)
             return False
+        r.encoding = 'ascii'
         data = r.text[11:450] if r.status_code == 200 else None
-        # print(data)
         if data:
             self.parseValues(data)
             self._now = datetime.now()
@@ -236,7 +236,6 @@ def main_fetch():
         now = int(datetime.utcnow().timestamp()) # use seconds instead of us*1e6)
         # print(now, sr.values)
         logging.info("{} {} {}".format(measurement, sr.toInfluxLineProtocolValues(), now))
-#        pprint.pprint(sr.values)
         sleeptime = 60 - datetime.utcnow().second
         sleep(sleeptime)
 
