@@ -7,7 +7,7 @@ This tool reads data via HTTP from a Solvis Remote (http://www.solvis.de/privatk
 
 The results can be:
 * printed to stdout
-* sent to an InfluxDB
+* send to an InfluxDB
 
 ## How?
 Adjust the variables in .environment file to fit your environment.
